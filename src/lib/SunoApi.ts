@@ -65,9 +65,11 @@ class SunoApi {
    */
   private async getAuthToken() {
     // URL to get session ID
-    const getSessionUrl = `${SunoApi.CLERK_BASE_URL}/v1/client?_clerk_js_version=4.73.4`; 
+    const getSessionUrl = `${SunoApi.CLERK_BASE_URL}/v1/client?_clerk_js_version=5.26.2`; 
     // Get session ID
     const sessionResponse = await this.client.get(getSessionUrl);
+    logger.info(sessionResponse);
+    logger.info("\n");
     if (!sessionResponse?.data?.response?.['last_active_session_id']) {
       throw new Error("Failed to get session id, you may need to update the SUNO_COOKIE");
     }
@@ -84,7 +86,7 @@ class SunoApi {
       throw new Error("Session ID is not set. Cannot renew token.");
     }
     // URL to renew session token
-    const renewUrl = `${SunoApi.CLERK_BASE_URL}/v1/client/sessions/${this.sid}/tokens?_clerk_js_version==4.73.4`; 
+    const renewUrl = `${SunoApi.CLERK_BASE_URL}/v1/client/sessions/${this.sid}/tokens?_clerk_js_version==5.26.2`; 
     // Renew session token
     const renewResponse = await this.client.post(renewUrl);
     logger.info("KeepAlive...\n");
@@ -278,7 +280,8 @@ class SunoApi {
     // Poll for lyrics completion
     let lyricsResponse = await this.client.get(`${SunoApi.BASE_URL}/api/generate/lyrics/${generateId}`);
     while (lyricsResponse?.data?.status !== 'complete') {
-      await sleep(2); // Wait for 2 seconds before polling again
+      await sleep(3); // Wait for 3 seconds before polling again
+      await this.keepAlive(false);
       lyricsResponse = await this.client.get(`${SunoApi.BASE_URL}/api/generate/lyrics/${generateId}`);
     }
 
